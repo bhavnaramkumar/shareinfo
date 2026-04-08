@@ -1,0 +1,43 @@
+User Table
+
+id = Column(Integer, primary_key=True, index=True)
+first_name = Column(String, index=True)
+last_name = Column(String, index=True)
+phonenumber = Column(String)
+email = Column(String, unique=True, index=True)
+
+(User) <-> (College) One to Many
+College Table
+user_id = Column(Integer, ForeignKey("users.id"))
+name = Column(String)
+major = Column(String)
+minor = Column(String)
+gpa = Column(Float)
+
+
+
+(User) <-> (Experience) One to Many
+Experience 
+user_id = Column(Integer, ForeignKey("users.id"))
+work_place = Column(String)
+location = Column(String)
+job_title = Column(String)
+start_date = Column(String)
+end_date = Column(String)
+job_description = Column(String)
+
+
+(User) <-> (Projects) One to Many
+Projects 
+user_id = Column(Integer, ForeignKey("users.id"))
+name = Column(String)  
+description = Column(String)
+
+
+(User) <-> (Skills) One to Many
+Skills 
+user_id = Column(Integer, ForeignKey("users.id"))
+technical_skills = Column(String)
+soft_skills = Column(String)
+
+
