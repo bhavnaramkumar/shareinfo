@@ -1,11 +1,19 @@
+import logging
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from database import prod_engine, get_prod_db, qa_engine, get_qa_db
+from database import prod_engine, qa_engine, get_db
 import models
 import schemas
 import db
+
+# 1. Minimal setup for logging
+logging.basicConfig(
+    level=logging.INFO,  # Will record INFO, WARN, and ERROR logs
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Create tables in Postgres if they do not exist
 models.Base.metadata.create_all(bind=prod_engine)
@@ -36,103 +44,57 @@ def upload_resume():
 
 # --- Database API Endpoints ---
 
-@app.post("/prod/users/", response_model=schemas.UserResponse)
-def create_user_endpoint(user: schemas.UserCreate, session: Session = Depends(get_prod_db)):
+@app.post("/users/", response_model=schemas.UserResponse)
+def create_user_endpoint(user: schemas.UserCreate, session: Session = Depends(get_db)):
     return db.create_user(db=session, user=user)
 
-@app.get("/prod/users/", response_model=list[schemas.UserResponse])
-def get_users_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_prod_db)):
+@app.get("/users/", response_model=list[schemas.UserResponse])
+def get_users_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_db)):
     return db.get_users(db=session, skip=skip, limit=limit)
 
-
-@app.get("/prod/users/{user_id}", response_model=schemas.UserResponse)
-def get_user_by_id_endpoint(user_id: int, session: Session = Depends(get_prod_db)):
+@app.get("/users/{user_id}", response_model=schemas.UserResponse)
+def get_user_by_id_endpoint(user_id: int, session: Session = Depends(get_db)):
     return db.get_user_by_id(db=session, user_id=user_id)
 
-@app.get("/prod/users/{user_id}/all", response_model=schemas.UserAllInfoResponse)
-def get_all_user_info_endpoint(user_id: int, session: Session = Depends(get_prod_db)):
+@app.get("/users/{user_id}/all", response_model=schemas.UserAllInfoResponse)
+def get_all_user_info_endpoint(user_id: int, session: Session = Depends(get_db)):
     return db.get_all_user_info(db=session, user_id=user_id)
 
-
-@app.get("/prod/users/email/{email}", response_model=schemas.UserResponse)
-def get_user_by_email_endpoint(email: str, session: Session = Depends(get_prod_db)):
+@app.get("/users/email/{email}", response_model=schemas.UserResponse)
+def get_user_by_email_endpoint(email: str, session: Session = Depends(get_db)):
     return db.get_user_by_email(db=session, email=email)
 
 
-
-
-
-
-
-@app.post("/qa/users/", response_model=schemas.UserResponse)
-def create_user_endpoint(user: schemas.UserCreate, session: Session = Depends(get_qa_db)):
-    return db.create_user(db=session, user=user)
-
-@app.get("/qa/users/", response_model=list[schemas.UserResponse])
-def get_users_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_qa_db)):
-    return db.get_users(db=session, skip=skip, limit=limit)
-
-
-@app.post("/prod/education/", response_model=schemas.EducationResponse)
-def create_education_endpoint(education: schemas.EducationCreate, session: Session = Depends(get_prod_db)):
+@app.post("/education/", response_model=schemas.EducationResponse)
+def create_education_endpoint(education: schemas.EducationCreate, session: Session = Depends(get_db)):
     return db.create_education(db=session, education=education)
 
-@app.get("/prod/education/", response_model=list[schemas.EducationResponse])
-def get_education_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_prod_db)):
+@app.get("/education/", response_model=list[schemas.EducationResponse])
+def get_education_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_db)):
     return db.get_education(db=session, skip=skip, limit=limit)
 
-@app.post("/qa/education/", response_model=schemas.EducationResponse)
-def create_education_endpoint(education: schemas.EducationCreate, session: Session = Depends(get_qa_db)):
-    return db.create_education(db=session, education=education)
 
-@app.get("/qa/education/", response_model=list[schemas.EducationResponse])
-def get_education_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_qa_db)):
-    return db.get_education(db=session, skip=skip, limit=limit)
-
-@app.post("/prod/experience/", response_model=schemas.ExperienceResponse)
-def create_experience_endpoint(experience: schemas.ExperienceCreate, session: Session = Depends(get_prod_db)):
+@app.post("/experience/", response_model=schemas.ExperienceResponse)
+def create_experience_endpoint(experience: schemas.ExperienceCreate, session: Session = Depends(get_db)):
     return db.create_experience(db=session, experience=experience)
 
-@app.get("/prod/experience/", response_model=list[schemas.ExperienceResponse])
-def get_experiences_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_prod_db)):
+@app.get("/experience/", response_model=list[schemas.ExperienceResponse])
+def get_experiences_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_db)):
     return db.get_experiences(db=session, skip=skip, limit=limit)
 
-@app.post("/qa/experience/", response_model=schemas.ExperienceResponse)
-def create_experience_endpoint(experience: schemas.ExperienceCreate, session: Session = Depends(get_qa_db)):
-    return db.create_experience(db=session, experience=experience)
-
-@app.get("/qa/experience/", response_model=list[schemas.ExperienceResponse])
-def get_experiences_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_qa_db)):
-    return db.get_experiences(db=session, skip=skip, limit=limit)
-
-@app.post("/prod/project/", response_model=schemas.ProjectResponse)
-def create_project_endpoint(project: schemas.ProjectCreate, session: Session = Depends(get_prod_db)):
+@app.post("/project/", response_model=schemas.ProjectResponse)
+def create_project_endpoint(project: schemas.ProjectCreate, session: Session = Depends(get_db)):
     return db.create_project(db=session, project=project)
 
-@app.get("/prod/project/", response_model=list[schemas.ProjectResponse])
-def get_projects_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_prod_db)):
+@app.get("/project/", response_model=list[schemas.ProjectResponse])
+def get_projects_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_db)):
     return db.get_projects(db=session, skip=skip, limit=limit)
 
-@app.post("/qa/project/", response_model=schemas.ProjectResponse)
-def create_project_endpoint(project: schemas.ProjectCreate, session: Session = Depends(get_qa_db)):
-    return db.create_project(db=session, project=project)
-
-@app.get("/qa/project/", response_model=list[schemas.ProjectResponse])
-def get_projects_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_qa_db)):
-    return db.get_projects(db=session, skip=skip, limit=limit)
-
-@app.post("/prod/skill/", response_model=schemas.SkillResponse)
-def create_skill_endpoint(skill: schemas.SkillCreate, session: Session = Depends(get_prod_db)):
+@app.post("/skill/", response_model=schemas.SkillResponse)
+def create_skill_endpoint(skill: schemas.SkillCreate, session: Session = Depends(get_db)):
     return db.create_skill(db=session, skill=skill)
 
-@app.get("/prod/skill/", response_model=list[schemas.SkillResponse])
-def get_skills_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_prod_db)):
+@app.get("/skill/", response_model=list[schemas.SkillResponse])
+def get_skills_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_db)):
     return db.get_skills(db=session, skip=skip, limit=limit)
 
-@app.post("/qa/skill/", response_model=schemas.SkillResponse)
-def create_skill_endpoint(skill: schemas.SkillCreate, session: Session = Depends(get_qa_db)):
-    return db.create_skill(db=session, skill=skill)
-
-@app.get("/qa/skill/", response_model=list[schemas.SkillResponse])
-def get_skills_endpoint(skip: int = 0, limit: int = 100, session: Session = Depends(get_qa_db)):
-    return db.get_skills(db=session, skip=skip, limit=limit)

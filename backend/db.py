@@ -1,21 +1,28 @@
+import logging
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 import models
 import schemas
 
+# 2. Get the logger inside db.py
+logger = logging.getLogger(__name__)
+
 def create_user(db: Session, user: schemas.UserCreate):
     """
     Create a new user in the PostgreSQL database.
     """
+    logger.info(f"Attempting to create user with email: {user.email}") # INFO log
     db_user = models.User(**user.model_dump())
     db.add(db_user)
     try:
         db.commit()
         db.refresh(db_user)
+        logger.info(f"Successfully created user with ID: {db_user.id}") # INFO log
         return db_user
     except IntegrityError:
         db.rollback()
+        logger.error(f"Failed to create user. Email {user.email} is already registered.") # ERROR log
         raise HTTPException(status_code=400, detail="Email is already registered")
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
@@ -155,6 +162,7 @@ def get_user_by_id(db: Session, user_id: int):
 def get_user_by_email(db: Session, email: str):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user:
+        logger.warning(f"User requested email lookup for {email}, but it was not found.") # WARN log
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
